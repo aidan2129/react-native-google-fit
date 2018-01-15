@@ -179,6 +179,20 @@ LifecycleEventListener {
     }
 
     @ReactMethod
+    public void saveMeditation(double startDate, double endDate, Callback errorCallback, Callback successCallback) {
+        Log.v("GOOGLEFIT", "saveMeditation");
+        Log.v("GOOGLEFIT", Double.toString(startDate));
+        Log.v("GOOGLEFIT", Double.toString(endDate));
+        try {
+            successCallback.invoke(mGoogleFitManager.saveMeditation((long)startDate, (long)endDate));
+            Log.v("GOOGLEFIT", "SUCCESS");
+        } catch (IllegalViewOperationException e) {
+            errorCallback.invoke(e.getMessage());
+            Log.v("GOOGLEFIT", "ERROR");
+        }
+    }
+
+    @ReactMethod
     public void isAvailable(Callback errorCallback, Callback successCallback) { // true if GoogleFit installed
         try {
             successCallback.invoke(isAvailableCheck());

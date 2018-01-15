@@ -36,6 +36,22 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
 
+import com.google.android.gms.fitness.data.DataSource;
+import com.google.android.gms.fitness.data.DataSet;
+import com.google.android.gms.fitness.data.DataType;
+import com.google.android.gms.fitness.data.Field;
+import com.google.android.gms.fitness.data.Session;
+import com.google.android.gms.fitness.request.SessionInsertRequest;
+import com.google.android.gms.fitness.data.DataPoint;
+import com.google.android.gms.fitness.FitnessActivities;
+import com.google.android.gms.common.api.PendingResult;
+
+
+import java.lang.System;
+import java.util.concurrent.TimeUnit;
+
+
+
 
 public class GoogleFitManager implements
         ActivityEventListener {
@@ -98,6 +114,50 @@ public class GoogleFitManager implements
         return distanceHistory;
     }
 
+    public boolean saveMeditation(long startTime, long endTime) {
+        DataSource dataSource = new DataSource.Builder()
+                .setAppPackageName("com.lvlup.buddhify")
+                .setDataType(DataType.TYPE_ACTIVITY_SEGMENT)
+                .setName("meditation")
+                .setType(DataSource.TYPE_RAW)
+                .build();
+        
+        DataSet dataSet = DataSet.create(dataSource);
+
+        DataPoint dataPoint = dataSet.createDataPoint().setTimeInterval((long) startTime, (long) endTime, TimeUnit.MILLISECONDS);
+        dataPoint.getValue(Field.FIELD_ACTIVITY).setActivity(FitnessActivities.MEDITATION);
+        dataSet.add(dataPoint);
+        
+        Session session = new Session.Builder()
+          .setName("buddhify meditation")
+          .setIdentifier("buddhify " + System.currentTimeMillis())
+          .setStartTime(startTime, TimeUnit.MILLISECONDS)
+          .setEndTime(endTime, TimeUnit.MILLISECONDS)
+          .setActivity(FitnessActivities.MEDITATION)
+          .build();
+        SessionInsertRequest insertRequest = new SessionInsertRequest.Builder()
+            .setSession(session)
+            .addDataSet(dataSet)
+            .build();
+
+        
+        PendingResult<Status> pendingResult = Fitness.SessionsApi.insertSession(this.getGoogleApiClient(), insertRequest);
+ 
+        pendingResult.setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                if( status.isSuccess() ) {
+                    Log.i("Tuts+", "successfully inserted meditation session");
+                } else {
+                    Log.i("Tuts+", "Failed to insert meditation session: " + status.getStatusMessage());
+                }
+            }
+        });
+
+        return true;
+    }
+    
+
     public void resetAuthInProgress()
     {
         if (!isAuthorize()) {
@@ -110,12 +170,13 @@ public class GoogleFitManager implements
     public void authorize(@Nullable final Callback errorCallback, @Nullable final Callback successCallback) {
 
         mApiClient = new GoogleApiClient.Builder(mReactContext.getApplicationContext())
-                .addApi(Fitness.SENSORS_API)
-                .addApi(Fitness.HISTORY_API)
-                .addApi(Fitness.RECORDING_API)
-                .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
-                .addScope(new Scope(Scopes.FITNESS_BODY_READ_WRITE))
-                .addScope(new Scope(Scopes.FITNESS_LOCATION_READ))
+                .addApi(Fitness.SESSIONS_API)
+                //.addApi(Fitness.SENSORS_API)
+                //.addApi(Fitness.HISTORY_API)
+                //.addApi(Fitness.RECORDING_API)
+                .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                //.addScope(new Scope(Scopes.FITNESS_BODY_READ_WRITE))
+                //.addScope(new Scope(Scopes.FITNESS_LOCATION_READ))
                 .addConnectionCallbacks(
                     new GoogleApiClient.ConnectionCallbacks() {
                         @Override

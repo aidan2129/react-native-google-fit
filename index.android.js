@@ -230,6 +230,15 @@ class RNGoogleFit {
         });
     }
 
+    saveMeditation(options, callback) {
+        googleFit.saveMeditation(Date.parse(options.startDate), Date.parse(options.endDate), (msg) => {
+            callback(msg,false);
+        },
+        (res) => {
+            callback(false,res);
+        });
+    }
+
     isAvailable(callback) { // true if GoogleFit installed
         googleFit.isAvailable(
             (msg) => {
