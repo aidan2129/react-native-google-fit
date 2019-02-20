@@ -129,7 +129,7 @@ public class GoogleFitManager implements
         dataSet.add(dataPoint);
         
         Session session = new Session.Builder()
-          .setName("buddhify meditation")
+          .setName("meditation")
           .setIdentifier("buddhify " + System.currentTimeMillis())
           .setStartTime(startTime, TimeUnit.MILLISECONDS)
           .setEndTime(endTime, TimeUnit.MILLISECONDS)
